@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.bak
+*.bak-*
+.DS_Store
+*.zip
+dist/
+.venv/
+node_modules/
