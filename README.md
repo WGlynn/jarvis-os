@@ -205,5 +205,10 @@ architecture. The cognition gate is named after my own preference
 (`What Would Will Do?`) but the framework is yours to instantiate
 with your name and your patterns.
 
+**v1.0.1** (2026-05-24) — adds four primitives surfaced by today's
+WWWD-arc work: the airgap-closure stack, the four-substrate
+convergence theorem, proof-of-mind, and the substrate-port pattern.
+See `templates/memory/primitive_*.md` and the boot screen.
+
 Forks welcome. PRs that genericize the framework further (without
 losing the substrate-as-shared-example shape) especially welcome.

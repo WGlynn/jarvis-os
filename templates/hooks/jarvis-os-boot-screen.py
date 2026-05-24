@@ -125,6 +125,9 @@ def render_boot_screen() -> str:
 │ WWWD  ········ What Would Will Do?  (cognition gate · V3 capstone)  │
 │ RSAW  ········ Recursive Self-Audit via WWWD  (TRP methodology)     │
 │ HIERO ········ Operator-density memory format (hook-enforced)       │
+│ AIRGAP ······· 6-layer chain↔reality closure stack (OPH-anchored)   │
+│ 4-SURFACE ···· VibeSwap+JARVIS-OS+Rosetta+OPH convergence theorem   │
+│ PoM ·········· Proof-of-Mind (cognition attestation · PoW-port)     │
 │ (extend with your own as you add primitives to memory/)             │
 └─────────────────────────────────────────────────────────────────────┘
 
@@ -135,6 +138,10 @@ def render_boot_screen() -> str:
 │ V3 SPEC         →  ~/JARVIS/05-meta-protocols/v3-jarvis-protocol.md │
 │ WWWD primitive  →  memory/primitive_what-would-will-do.md           │
 │ RSAW primitive  →  memory/primitive_recursive-self-audit-via-wwwd.md│
+│ AIRGAP stack    →  memory/primitive_airgap-closure-stack.md         │
+│ 4-SURFACE conv  →  memory/primitive_four-substrate-convergence.md   │
+│ PoM primitive   →  memory/primitive_proof-of-mind.md                │
+│ PORT pattern    →  memory/primitive_substrate-port-pattern.md       │
 │ META STACK      →  ~/.claude/META_STACK.md                          │
 │ Global rules    →  ~/.claude/CLAUDE.md                              │
 └─────────────────────────────────────────────────────────────────────┘

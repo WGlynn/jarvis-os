@@ -1,0 +1,44 @@
+# ~/.claude/mesh/peers.yaml — Stage 1 static peer registry
+#
+# Per Cycle 1 / Agent C §"Discovery + consumption", Stage 1 uses a static
+# YAML peer list. Stage 2 swaps this for on-chain MeshIndex lookups
+# (gated on PsiNet deploy — Agent C cross-dep #3).
+#
+# Each peer needs:
+#   did         — peer's did:key:z6Mk... (use the value they shared)
+#   endpoint    — HTTP(S) URL that serves /published-index.json
+#                 Can be either:
+#                   (a) an IPFS gateway serving the peer's pinned index
+#                   (b) a simple HTTPS host that publishes the index directly
+#                 Stage 1 does NOT require IPFS daemon on either side.
+#   tags        — (optional) list of tags this peer publishes; informational
+#                 only in Stage 1, used as a discovery filter in Stage 2.
+#
+# How to bootstrap:
+#   1. cp peers.example.yaml ~/.claude/mesh/peers.yaml
+#   2. Remove the .example peer below.
+#   3. Add real peer entries as people you trust come online.
+#
+# HONEST FRAMING (Stage 1):
+#   - The mesh is empty until early adopters bootstrap. This is expected.
+#   - Static YAML doesn't scale past ~10 peers (Agent C cross-dep #5).
+#     Bridge: well-known DNS list. Permanent: PsiNet MeshIndex / DHT.
+#   - No signature verification of peer indices yet — peer trust is purely
+#     out-of-band in Stage 1. Stage 2 adds DID-signed index entries.
+
+peers:
+  # ---- PLACEHOLDER — remove before going live ----
+  - did: did:key:z6MkPlaceholderReplaceWithRealPeer
+    endpoint: https://will-jarvis-os.example/mesh
+    tags:
+      - wwwd
+      - hiero
+    note: "Placeholder peer. Remove and replace with real peer entries."
+
+  # ---- Real peers (add below as they come online) ----
+  #
+  # - did: did:key:z6MkSomeRealPeer...
+  #   endpoint: https://that-peer.example.com/mesh
+  #   tags:
+  #     - wwwd
+  #     - airgap

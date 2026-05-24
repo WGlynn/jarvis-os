@@ -1,0 +1,43 @@
+# ~/.claude/mesh/deny-list.yaml — global deny-list for mesh-publish-gate
+#
+# Per Cycle 2 / Agent E §A, this is Tier 2 of the 3-tier list:
+#   Tier 1: NDA-Eridu KEYWORDS (imported live from ~/.claude/bin/nda-eridu-gate.py)
+#   Tier 2: THIS FILE                                  (global, per-install)
+#   Tier 3: per-primitive `mesh.scrub_extra: [...]`    (author additions)
+#
+# How matching works:
+#   - Literal + word-boundary, case-insensitive
+#   - Hit -> ABORT publish, emit diff-style preview, NO auto-scrub
+#   - Author resolves by editing the primitive or adjusting this list
+#
+# How to bootstrap:
+#   1. Copy this file:  cp deny-list.example.yaml ~/.claude/mesh/deny-list.yaml
+#   2. Replace placeholders with real terms relevant to YOUR install.
+#   3. Version-control in your private dotfiles repo. Do NOT publish this list
+#      itself — CRDT-shared deny-lists leak membership of the deny-list (Agent E).
+#
+# Honest framing: this list is a redaction signal, not security. Anyone
+# determined to find the underlying entity will. The list exists to prevent
+# accidental partner-name leaks during publishing.
+
+terms:
+  # ---- Partner-name aliases ----
+  # Replace these placeholder partner names with the real ones you collaborate
+  # with. The gate will catch them in any `published: true` primitive body.
+  #
+  # - PlaceholderPartnerName1
+  # - PlaceholderPartnerName2
+
+  # ---- Project codenames not for public mesh ----
+  # Internal codenames, repo paths, stealth-project names.
+  #
+  # - placeholder-stealth-codename
+
+  # ---- Personal identifiers ----
+  # Email handles, phone fragments, addresses that should never propagate.
+  #
+  # - placeholder@example.com
+
+  # ---- Notes ----
+  # Bare `-` lines above are commented-out examples. Uncomment + replace
+  # before the gate matches anything from this tier.
