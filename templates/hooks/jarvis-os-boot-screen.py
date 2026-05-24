@@ -27,6 +27,7 @@ from datetime import datetime
 
 MEMORY_DIR = Path.home() / ".claude" / "projects" / "{{PROJECT_DIR}}" / "memory"
 PRIORITY_CACHE = MEMORY_DIR / "_system" / "wwwd_corpus_priority.json"
+MESH_STATUS = Path.home() / ".claude" / "mesh" / "status.json"
 
 BANNER = """
 ╔══════════════════════════════════════════════════════════════════════╗
@@ -61,19 +62,70 @@ def render_priority_status() -> str:
         return "WWWD corpus · cache unreadable"
 
 
+def render_mesh_panel() -> str:
+    """Render the MESH panel from ~/.claude/mesh/status.json.
+
+    Stage 1: panel reflects local-only state — empty mesh is honest, not
+    a bug. File absent (mesh not initialized) → MESH OFFLINE banner.
+    Agent C §"Boot screen delta".
+    """
+    if not MESH_STATUS.exists():
+        return (
+            "\n"
+            "┌─[ MESH ]────────────────────────────────────────────────────────────┐\n"
+            "│ MESH OFFLINE — run scripts/mesh-init.py to bootstrap identity       │\n"
+            "└─────────────────────────────────────────────────────────────────────┘\n"
+        )
+    try:
+        s = json.loads(MESH_STATUS.read_text(encoding="utf-8"))
+    except Exception:
+        return (
+            "\n"
+            "┌─[ MESH ]────────────────────────────────────────────────────────────┐\n"
+            "│ MESH status.json unreadable — re-run mesh-status-refresh.py         │\n"
+            "└─────────────────────────────────────────────────────────────────────┘\n"
+        )
+
+    did_short = s.get("did_short") or "uninitialized"
+    n_known = s.get("peers_known", 0)
+    n_active = s.get("peers_active_24h", 0)
+    n_pub = s.get("published_primitives", 0)
+    n_topics = s.get("subscribed_topics", 0)
+    last_sync = s.get("last_sync") or "never"
+    if last_sync != "never" and len(last_sync) > 16:
+        last_sync = last_sync[:16].replace("T", " ")
+    queue = s.get("queue_depth", 0)
+
+    did_field = f"did:key:{did_short}..." if did_short != "uninitialized" else did_short
+
+    def pad(line_inner: str, width: int = 69) -> str:
+        # account for unicode display width of pipes — keep simple, truncate
+        return line_inner[:width].ljust(width)
+
+    return (
+        "\n"
+        "┌─[ MESH ]────────────────────────────────────────────────────────────┐\n"
+        f"│ {pad(f'DID         {did_field}')}│\n"
+        f"│ {pad(f'Peers       {n_known} known · {n_active} active')}│\n"
+        f"│ {pad(f'Published   {n_pub} primitives')}│\n"
+        f"│ {pad(f'Subscribed  {n_topics} topics · last sync {last_sync}')}│\n"
+        f"│ {pad(f'Queue       {queue} pending publish')}│\n"
+        "└─────────────────────────────────────────────────────────────────────┘\n"
+    )
+
+
 def render_boot_screen() -> str:
     """Compose the full 8-bit boot screen."""
     now = datetime.now().strftime("%Y-%m-%d %H:%M ET")
     priority_status = render_priority_status()
+    mesh_panel = render_mesh_panel()
 
     screen = BANNER + f"""
 ┌─[ PROTOCOLS ]───────────────────────────────────────────────────────┐
 │ WWWD  ········ What Would Will Do?  (cognition gate · V3 capstone)  │
 │ RSAW  ········ Recursive Self-Audit via WWWD  (TRP methodology)     │
 │ HIERO ········ Operator-density memory format (hook-enforced)       │
-│ NCI   ········ Bonded-validator meta-consensus (L0+L1 unified)      │
-│ ETM   ········ Economic Theory of Mind (substrate-of-mind axis)     │
-│ CCP   ········ Cross-Context Protocol (multi-context cross-ref)     │
+│ (extend with your own as you add primitives to memory/)             │
 └─────────────────────────────────────────────────────────────────────┘
 
 ┌─[ FILES ]───────────────────────────────────────────────────────────┐
@@ -97,7 +149,7 @@ def render_boot_screen() -> str:
 │ ▸ Entity x-ref       PreToolUse Write│Edit        (AA#3 / CCP)     │
 │ ▸ Substance gate     PreToolUse Write│Edit        (claim-handshake)│
 └─────────────────────────────────────────────────────────────────────┘
-
+{mesh_panel}
 ┌─[ PHILOSOPHY ]──────────────────────────────────────────────────────┐
 │ THE CAVE ········· Build with constraints. The cave selects.        │
 │ STRUCTURE ········ Structure does the work, not policy.             │
@@ -107,7 +159,7 @@ def render_boot_screen() -> str:
 │ COMPLETE-AS-RFC ·· Complete = ready-for-critique, not validated.    │
 └─────────────────────────────────────────────────────────────────────┘
 
-┌─[ COMMANDS ]────────────────────────────────────────────────────────┐
+┌─[ ASK CLAUDE ]──────────────────────────────────────────────────────┐
 │ "show protocols"    →  enumerate all protocol primitives            │
 │ "show gates"        →  enumerate all hooks + matchers               │
 │ "show state"        →  print SESSION_STATE.md tail                  │

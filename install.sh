@@ -39,6 +39,7 @@ set -e
 USER_NAME=""
 PROJECT_DIR=""
 DRY_RUN=0
+MESH=0      # Stage 1 MindMesh federation (opt-in, default OFF)
 CLAUDE_HOME="$HOME/.claude"
 INSTALLER_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -49,6 +50,7 @@ while [[ $# -gt 0 ]]; do
     --user)        USER_NAME="$2"; shift 2 ;;
     --project-dir) PROJECT_DIR="$2"; shift 2 ;;
     --dry-run)     DRY_RUN=1; shift ;;
+    --mesh)        MESH=1; shift ;;
     --claude-home) CLAUDE_HOME="$2"; shift 2 ;;
     -h|--help)     sed -n '2,33p' "$0"; exit 0 ;;
     *) echo "Unknown arg: $1"; exit 1 ;;
@@ -80,6 +82,7 @@ echo "  User name      : $USER_NAME"
 echo "  Project slug   : $PROJECT_DIR"
 echo "  Claude home    : $CLAUDE_HOME"
 echo "  Dry-run        : $DRY_RUN"
+echo "  MindMesh       : $MESH  (Stage 1: identity + queue-only publish)"
 echo
 
 if [[ "$DRY_RUN" != "1" ]]; then
@@ -143,6 +146,43 @@ install_file "$INSTALLER_DIR/templates/memory/primitive_what-would-will-do.md"  
 install_file "$INSTALLER_DIR/templates/memory/primitive_jarvis-os.md"                    "$MEMORY_DIR/primitive_jarvis-os.md"
 install_file "$INSTALLER_DIR/templates/memory/primitive_recursive-self-audit-via-wwwd.md" "$MEMORY_DIR/primitive_recursive-self-audit-via-wwwd.md"
 
+# ============ Mesh: Stage 1 MindMesh federation (opt-in) ============
+
+SCRIPTS_DIR="$CLAUDE_HOME/scripts"
+MESH_USER_DIR="$CLAUDE_HOME/mesh"
+
+if [[ "$MESH" == "1" ]]; then
+  echo
+  echo "Installing Stage 1 MindMesh federation (--mesh)..."
+  mkdir_p "$SCRIPTS_DIR"
+  mkdir_p "$MESH_USER_DIR/identity"
+  mkdir_p "$MESH_USER_DIR/queue"
+  mkdir_p "$MESH_USER_DIR/cache"
+
+  # Hook script (PostToolUse signer + deny-list)
+  install_file "$INSTALLER_DIR/templates/scripts/mesh-publish-gate.py" "$HOOKS_DIR/mesh-publish-gate.py"
+  # SessionStart status refresher
+  install_file "$INSTALLER_DIR/templates/hooks/mesh-status-refresh.py" "$HOOKS_DIR/mesh-status-refresh.py"
+  # CLI scripts
+  install_file "$INSTALLER_DIR/templates/scripts/mesh-init.py"         "$SCRIPTS_DIR/mesh-init.py"
+  install_file "$INSTALLER_DIR/templates/scripts/mesh-pull.py"         "$SCRIPTS_DIR/mesh-pull.py"
+
+  # Bootstrap example files into user mesh dir IF not already present
+  if [[ "$DRY_RUN" != "1" ]]; then
+    if [[ ! -f "$MESH_USER_DIR/deny-list.yaml" ]]; then
+      cp "$INSTALLER_DIR/templates/mesh/deny-list.example.yaml" "$MESH_USER_DIR/deny-list.yaml"
+      echo "  bootstrapped: $MESH_USER_DIR/deny-list.yaml (edit before publishing)"
+    fi
+    if [[ ! -f "$MESH_USER_DIR/peers.yaml" ]]; then
+      cp "$INSTALLER_DIR/templates/mesh/peers.example.yaml" "$MESH_USER_DIR/peers.yaml"
+      echo "  bootstrapped: $MESH_USER_DIR/peers.yaml (add real peers as they come online)"
+    fi
+    # Run mesh-init.py to generate the DID (idempotent; safe to re-run)
+    echo "  generating Stage-1 DID..."
+    python3 "$SCRIPTS_DIR/mesh-init.py" || echo "  (mesh-init failed — install cryptography: pip install cryptography)"
+  fi
+fi
+
 # ============ Settings merge ============
 
 echo
@@ -157,6 +197,7 @@ from pathlib import Path
 
 settings_path = Path("$SETTINGS_FILE")
 hooks_dir = Path("$HOOKS_DIR")
+mesh_enabled = ("$MESH" == "1")
 
 if settings_path.exists():
     try:
@@ -216,6 +257,11 @@ add_hook("PreToolUse",   "Agent",             "atomic-reflection-gate.py",      
 add_hook("PostToolUse",  "Write|Edit|NotebookEdit", "em-dash-augmentation-gate.py",   "Em-dash augmentation gate...", timeout=5)
 add_hook("PostToolUse",  None,                "atomic-reflection-gate.py",           "Atomic reflection: error/timeout check...", timeout=5)
 
+# Layer 4 — Stage 1 MindMesh federation (opt-in via --mesh)
+if mesh_enabled:
+    add_hook("SessionStart", None,            "mesh-status-refresh.py",       "MESH status refresh...", timeout=5)
+    add_hook("PostToolUse",  "Write|Edit",    "mesh-publish-gate.py",         "MESH publish gate: deny-list + sign...", timeout=8)
+
 # Backup + write
 if settings_path.exists():
     backup = settings_path.with_suffix(".json.bak-pre-jarvis-os")
@@ -236,12 +282,21 @@ echo "============================================================"
 echo "  JARVIS-OS installed for $USER_NAME"
 echo "============================================================"
 echo
-echo "  12 hooks registered across 4 events."
+if [[ "$MESH" == "1" ]]; then
+  echo "  14 hooks registered across 4 events (incl. Stage 1 MindMesh)."
+  echo "  Mesh dir bootstrapped at $MESH_USER_DIR — edit peers.yaml + deny-list.yaml."
+else
+  echo "  12 hooks registered across 4 events."
+  echo "  MindMesh: OFF (pass --mesh to enable Stage 1 federation)."
+fi
 echo "  3 core primitives + seed MEMORY.md in your memory dir."
 echo "  settings.json backup at ~/.claude/settings.json.bak-pre-jarvis-os"
 echo
 echo "  Verify the install:"
 echo "    cd $INSTALLER_DIR && sha256sum -c MANIFEST.sha256"
+echo
+echo "  Absorb another substrate:"
+echo "    bash $INSTALLER_DIR/absorb.sh <path-or-git-url> [--namespace prefix]"
 echo
 echo "  Customize your cognition gate:"
 echo "    \$EDITOR $MEMORY_DIR/primitive_what-would-will-do.md"
