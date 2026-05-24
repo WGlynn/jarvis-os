@@ -20,25 +20,30 @@ verify what you have matches what I ship.
 
 You install this pack. You get:
 
-- **The same four hooks** that fire on my machine (Layer 1: hooks)
+- **The same twelve hooks** that fire on my machine (Layer 1 + Layer 3)
 - **The same three core primitives** that anchor my cognition stack (Layer 2: persistence)
 - **The same boot screen** as the navigation surface (the OS itself)
 - **The same hook-registration shape** in `settings.json`
 
-You do **not** get:
+Your **corpus** starts empty and grows from your usage. The kernel is identical
+across installs; the cognition diverges from there.
 
-- My 395-file memory corpus (it's personal, partially NDA-locked, and accreted over months)
-- My gate-fire log (yours starts empty and accumulates from your usage)
-- My partner-context, project state, or session history
-- The 60+ canonical papers at `vibeswap/docs/papers/`
+The rest of my substrate is not withheld — it is **tokenized and tradeable**.
+Reusable cognition primitives mint as NFTs + ERC-20 consumables on the PsiNet
+context-exchange protocol (Ocean-Protocol pattern, ported to the cognition
+layer). Sensitive primitives stay local; useful-but-sensitive primitives can
+publish under compute-to-data (ZK / homomorphic) so the logic stays encrypted
+while the projection output is queryable. NDA-locked content has no opt-in
+path — it never leaves the machine.
 
-The kernel is identical. The corpus is yours to grow. Your gate fires the
-same triggers, your boot screen renders the same surface, your cognition
-gate uses the same projection logic — but the corpus it projects against
-diverges from mine the moment you start using it.
+PsiNet runs on VibeSwap's commit-reveal + canonical burn-and-mint rails — the
+MEV-resistant primitive stack we built for token trading becomes the trading
+rail for cognition primitives. Trading substrate inherits the same adversary
+model trading tokens inherits.
 
-That's the honest version of "identical." Everything below the corpus is
-verifiable; everything in the corpus is yours.
+That's the honest version of "provably identical." Kernel: byte-identical, free,
+installed in one command. Corpus: yours by default, with optional acquisition
+of others' primitives via the marketplace as the network matures.
 
 ## What the install pack contains
 
